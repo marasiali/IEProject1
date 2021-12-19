@@ -1,39 +1,45 @@
-#!/usr/bin/python3
-
 import socket
-import threading
 import pyaudio
 
+
 class Client:
+    
     def __init__(self):
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        #self.server_ip="192.168.1.4"
-        while 1:
+        self.chunk_size = 512
+        self.audio_format = pyaudio.paInt16
+        self.channels = 1
+        self.rate = 44100
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+       
+        while True:
             try:
-                self.server_ip = input('Enter IP address of server --> ')
-                self.server_port = int(input('Enter target port of server --> '))
+                self.server_ip = input('enter IP address of server: ')
+                self.server_port = int(input('enter target port of server: '))
                 break
             except:
-                print("Incorrect input")
+                print('incorrect input')
 
-        chunk_size = 512
-        audio_format = pyaudio.paInt16
-        channels = 1
-        rate = 44100
-
-        self.p = pyaudio.PyAudio()
-        self.recording_stream = self.p.open(format=audio_format, channels=channels, rate=rate, input=True, frames_per_buffer=chunk_size)
-        
-        print("Sending your voice ...")
-        self.send_data_to_server()
+        self.pyaudio = pyaudio.PyAudio()
+        self.recording_stream = self.pyaudio.open(
+            format=self.audio_format, 
+            channels=self.channels, 
+            rate=self.rate, 
+            input=True, 
+            frames_per_buffer=self.chunk_size)
             
-
-    def send_data_to_server(self):
+    def send(self):
         while True:
             try:
                 data = self.recording_stream.read(512)
-                self.s.sendto(data,(self.server_ip,self.server_port))
+                self.socket.sendto(data, (self.server_ip, self.server_port))
+                print(str(len(data)) + ' bytes sent to ' + str(self.server_ip))
             except Exception as e:
-                print("2 "+str(e))
+                print('sending data to server failed: ' + str(e))
 
-client = Client()
+
+def main():
+    client = Client()
+    client.send()
+
+if __name__ == '__main__':
+    main()
