@@ -16,7 +16,7 @@ print(data[:start_index])
 # get voice data from packet	
 print(int.from_bytes(data[start_index:],'big'))
 #get timestamp from packet
-
+time.sleep(3)
 #send a packet with only this timestamp as ack to client ( singer )
 
 # create thread for recieving data in singer.py
