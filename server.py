@@ -10,12 +10,13 @@ class Server:
         self.MULTICAST_TTL = 2
         self.clients = []
         self.timestamp_size = 8
+        self.buffer_size = 512
 
         while True:
             try:
                 """ self.ip = input('enter server IP: ')
                 self.port = int(input('enter server port number: ')) """
-                self.ip = '127.0.0.1'
+                self.ip = '192.168.43.138'
                 self.port = 8081
 
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -31,7 +32,7 @@ class Server:
     def run(self):    
         while True:
             try:
-                data, addr = self.sock.recvfrom(1024)
+                data, addr = self.sock.recvfrom(self.buffer_size)
                 #start_index = len(data) - self.timestamp_size - 1
                 ack_data = data[-8:]
                 print('ack data', int.from_bytes(ack_data, 'big'))
@@ -44,6 +45,8 @@ class Server:
                 
                 #print('this is delay from server ', delay)
                 self.send_multicast(mc_data)
+                """ self.sock.sendto(mc_data, ('192.168.43.138', 6968))
+                self.sock.sendto(mc_data, ('192.168.43.23', 6968)) """
                 print(str(len(data)) + ' bytes received from ' + str(addr))
             except Exception as e:
                print('receiving data from client ' + str(addr) + ' failed: ' + str(e))

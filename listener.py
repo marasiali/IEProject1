@@ -14,7 +14,10 @@ class Client():
         
         mreq = struct.pack("4sl", socket.inet_aton(self.MCAST_GRP), socket.INADDR_ANY)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-        self.chunk_size = 512
+        """ self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind(('192.168.43.138', 6968)) """
+        self.chunk_size = 252
+        self.buffer_size = 512
         self.audio_format = pyaudio.paInt16
         self.channels = 1
         self.rate = 44100
@@ -30,7 +33,7 @@ class Client():
     def receive(self):
         while True:
             try:
-                data, addr = self.sock.recvfrom(1024)
+                data, addr = self.sock.recvfrom(self.buffer_size)
                 self.playing_stream.write(data)
                 print(str(len(data)) + ' bytes received from ' + str(addr))
             except Exception as e:

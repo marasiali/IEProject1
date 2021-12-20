@@ -12,7 +12,8 @@ class Client:
     def __init__(self):
         self.audio_folder = './audio/'
         self.audio_format = pyaudio.paInt16
-        self.chunk_size = 508   
+        self.chunk_size = 252
+        self.buffer_size = 512   
         self.channels = 1
         self.rate = 44100
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -22,7 +23,7 @@ class Client:
                 """ self.server_ip = input('enter IP address of server: ')
                 self.server_port = int(input('enter target port of server: '))
                 self.file_name = input('enter .wav file name from audio folder: ') """
-                self.server_ip = '127.0.0.1'
+                self.server_ip = '192.168.43.138'
                 self.server_port = 8081
                 self.file_name = 'a.wav'
                 break
@@ -43,11 +44,11 @@ class Client:
         #sample_rate = self.wave_file.getframerate()
         while True:
             try:
-                data = self.recording_stream.read(508)
+                data = self.recording_stream.read(self.chunk_size)
                 timestamp = round(time.time() * 1000)
                 data += int.to_bytes(timestamp, 8, 'big')
                 delay = random.randint(0, 80) / 1000
-                time.sleep(delay)
+                #time.sleep(delay)
                 #time.sleep(0.8 * self.chunk_size / sample_rate)
                 self.socket.sendto(data, (self.server_ip, self.server_port))
                 
@@ -64,11 +65,13 @@ class Client:
                 print('you have delay') """
         
         while True:
-            data, addr = self.socket.recvfrom(1024)
+            data, addr = self.socket.recvfrom(self.buffer_size)
             newtimestamp = round(time.time() * 1000)
             latency = (newtimestamp - int.from_bytes(data, 'big'))
             if latency > 50:
-                print('your delay is:', latency, 'ms')	
+                print('your delay is:', latency, 'ms and it is high')	
+            else:
+                print('your delay is:', latency, ' ms and it is low')
 
 
 def main():
