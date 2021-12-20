@@ -1,4 +1,6 @@
+from math import ceil
 import socket
+import pyaudio
 import wave
 import time
 import random
@@ -9,7 +11,8 @@ class Client:
     
     def __init__(self):
         self.audio_folder = './audio/'
-        self.chunk_size = 512   
+        self.audio_format = pyaudio.paInt16
+        self.chunk_size = 508   
         self.channels = 1
         self.rate = 44100
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -26,28 +29,47 @@ class Client:
             except:
                 print('incorrect input')
 
-        self.wave_file = wave.open(self.audio_folder + self.file_name, 'rb')
+        #self.wave_file = wave.open(self.audio_folder + self.file_name, 'rb')
+        self.p = pyaudio.PyAudio()
+        self.recording_stream = self.p.open(
+            format=self.audio_format, 
+            channels=self.channels, 
+            rate=self.rate, 
+            input=True, 
+            frames_per_buffer=self.chunk_size)
             
     def send(self):
-        data = self.wave_file.readframes(self.chunk_size)
-        sample_rate = self.wave_file.getframerate()
-        while data != b'':
+        #data = self.wave_file.readframes(self.chunk_size)
+        #sample_rate = self.wave_file.getframerate()
+        while True:
             try:
+                data = self.recording_stream.read(508)
+                timestamp = round(time.time() * 1000)
+                data += int.to_bytes(timestamp, 8, 'big')
                 delay = random.randint(0, 80) / 1000
-                time.sleep(0.8 * self.chunk_size / sample_rate)
+                time.sleep(delay)
+                #time.sleep(0.8 * self.chunk_size / sample_rate)
                 self.socket.sendto(data, (self.server_ip, self.server_port))
                 
-                print('this is delay from client ', delay)
-                print(str(len(data)) + ' bytes sent to ' + str(self.server_ip))
-                data = self.wave_file.readframes(self.chunk_size)
+                #print('this is delay from client ', delay)
+                #print(str(len(data)) + ' bytes sent to ' + str(self.server_ip))
+                #data = self.wave_file.readframes(self.chunk_size)
             except Exception as e:
                 print('sending data to server failed: ' + str(e))
 
     def receive_delay_feedback(self):
-        while True:
+        """ while True:
             data, addr = self.socket.recvfrom(1)
             if data == b'd':
-                print('you have delay')
+                print('you have delay') """
+        
+        while True:
+            data, addr = self.socket.recvfrom(1024)
+            newtimestamp = round(time.time() * 1000)
+            latency = (newtimestamp - int.from_bytes(data, 'big'))
+            if latency > 50:
+                print('your delay is:', latency, 'ms')	
+
 
 def main():
     client = Client()

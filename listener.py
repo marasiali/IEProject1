@@ -8,14 +8,9 @@ class Client():
     def __init__(self): 
         self.MCAST_GRP = '224.1.1.1'
         self.MCAST_PORT = 5007
-        self.IS_ALL_GROUPS = True
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        
-        if self.IS_ALL_GROUPS:
-            self.sock.bind(('', self.MCAST_PORT))
-        else:
-            self.sock.bind((self.MCAST_GRP, self.MCAST_PORT))
+        self.sock.bind(('', self.MCAST_PORT))
         
         mreq = struct.pack("4sl", socket.inet_aton(self.MCAST_GRP), socket.INADDR_ANY)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)

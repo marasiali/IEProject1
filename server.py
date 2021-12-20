@@ -9,6 +9,7 @@ class Server:
         self.MCAST_PORT = 5007
         self.MULTICAST_TTL = 2
         self.clients = []
+        self.timestamp_size = 8
 
         while True:
             try:
@@ -31,17 +32,25 @@ class Server:
         while True:
             try:
                 data, addr = self.sock.recvfrom(1024)
-                client = Client.get_or_create(addr[0], addr[1])
+                #start_index = len(data) - self.timestamp_size - 1
+                ack_data = data[-8:]
+                print('ack data', int.from_bytes(ack_data, 'big'))
+                mc_data = data[:-8]
+                self.send_ack(ack_data, addr)
+                """ client = Client.get_or_create(addr[0], addr[1])
                 delay = client.get_delay()
                 if delay > Client.threshold:
-                    self.send_delay_feedback(client)
+                    self.send_delay_feedback(client) """
                 
-                print('this is delay from server ', delay)
-                self.send_multicast(data)
+                #print('this is delay from server ', delay)
+                self.send_multicast(mc_data)
                 print(str(len(data)) + ' bytes received from ' + str(addr))
             except Exception as e:
                print('receiving data from client ' + str(addr) + ' failed: ' + str(e))
-       
+
+    def send_ack(self, data, addr):
+        self.sock.sendto(data, addr)   
+
     def send_multicast(self, data):
         try:
             self.mc_sock.sendto(data, (self.MCAST_GRP, self.MCAST_PORT))
