@@ -1,24 +1,19 @@
 import socket
 import pyaudio
-import struct
 
 
 class Client():
 
     def __init__(self): 
-        self.MCAST_GRP = '224.1.1.1'
         self.MCAST_PORT = 5007
-        #self.interface = '192.168.43.138'
         self.interface = input('input interface ip:')
+        self.MCAST_GRP = input('input multicast group ip:')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind(('', self.MCAST_PORT))
         
         mreq = socket.inet_aton(self.MCAST_GRP) + socket.inet_aton(self.interface)
-        #mreq = struct.pack("4sl", socket.inet_aton(self.MCAST_GRP), socket.INADDR_ANY)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-        #self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        #self.sock.bind(('192.168.43.138', 6968))
         self.chunk_size = 252
         self.buffer_size = 512
         self.audio_format = pyaudio.paInt16
@@ -38,7 +33,6 @@ class Client():
             try:
                 data, addr = self.sock.recvfrom(self.buffer_size)
                 self.playing_stream.write(data)
-                print(str(len(data)) + ' bytes received from ' + str(addr))
             except Exception as e:
                 print('receiving data from server failed: ' + str(e))
 
