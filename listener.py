@@ -29,6 +29,7 @@ class Client():
             frames_per_buffer=self.chunk_size)
 
     def receive(self):
+        print("Listening...")
         while True:
             try:
                 data, addr = self.sock.recvfrom(self.buffer_size)

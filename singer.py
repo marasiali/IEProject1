@@ -23,6 +23,7 @@ class Client:
             except:
                 print('incorrect input')
 
+        self.socket.sendto(b'Hello', (self.server_ip, self.server_port))
         self.p = pyaudio.PyAudio()
         self.recording_stream = self.p.open(
             format=self.audio_format, 
@@ -48,7 +49,7 @@ class Client:
             newtimestamp = round(time.time() * 1000)
             latency = (newtimestamp - int.from_bytes(data, 'big'))
             if (newtimestamp - lastTimestamp) >= 1000 :
-                if latency > 50:
+                if latency >= 100:
                     print('your delay is:', latency, 'ms and it is high')	
                 else:
                     print('your delay is:', latency, ' ms and it is low')
